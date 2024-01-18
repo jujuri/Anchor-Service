@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{layout/default}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<div class="main" layout:fragment="content">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-6">
+        <h2 class="mt-5 mb-5"
+            style="font-weight:700; color: #0a58ca;">
+          👨‍🏫멘토등록
+          페이지</h2>
+        <form action="/mentors/register" method="get" th:object="${mentorRegisterInfo}">
+          <div class="mb-3">
+            <label class="form-label" for="companyEmail">이메일</label>
+            <input class="form-control" id="companyEmail" name="companyEmail" placeholder="사내 메일을 입력하세요."
+                   th:field="*{companyEmail}"
+                   th:name="companyEmail"
+                   type="email">
+            <div th:errors="*{companyEmail}" th:if="${#fields.hasErrors('companyEmail')}">please check it
+              again
+            </div>
+            <button class="btn" id="btnEmailSend" style="background-color: #0a58ca; color:white;">SEND EMAIL
+            </button>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="emailCheck">이메일 인증</label>
+            <input class="form-control" id="emailCheck" name="emailCheck" placeholder="인증키를 입력하세요." type="text">
+            <button class="btn" id="btnEmailCheck" style="background-color: #0a58ca; color:white;">VERIFY EMAIL</button>
+          </div>
+          <div class="d-flex justify-content-center mt-5">
+            <button class="btn" id="btnSubmit" style="background-color:#0a58ca; color:white;">NEXT</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script>
+    let emailVerified = false;
+    $("#btnEmailSend").on("click", function(e) {
+      $.ajax({
+        url : "/mentors/register/email/send",
+        data : {
+          receiver : $("#companyEmail").val(),
+        },
+        method: "post",
+        success : function(data) {
+          console.log(data);
+          if (data === "success") {
+            alert("이메일을 전송하였습니다.");
+          }
+          else {
+            alert("이메일 전송에 실패하였습니다");
+          }
+        },
+        complete : function(data) {
+          console.log("complete");
+          console.log(data);
+        },
+      });
+    return false;
+    });
+
+    $("#btnEmailCheck").on("click", function(e) {
+      $.ajax({
+        url : "/mentors/register/email/auth",
+        data : {
+          userEmailCode : $("#emailCheck").val(),
+        },
+        method: "post",
+        success : function(data) {
+          console.log(data);
+          if (data === "success") {
+            alert("이메일 인증에 성공하였습니다.");
+            emailVerified = true;
+            $("#btnEmailSend").attr("readonly", true);
+            $("#btnEmailCheck").attr("readonly", true);
+            $("#btnEmailSend").attr("disabled", true);
+            $("#btnEmailCheck").attr("disabled", true);
+          }
+          else {
+            alert("이메일 인증에 실패하였습니다.");
+          }
+        },
+        complete : function(data) {
+          console.log("complete");
+          console.log(data);
+        },
+      });
+    return false;
+    });
+    $("#btnSubmit").on("click", function(e) {
+      if($("#companyEmail").val() === "") {
+        alert("이메일 입력은 필수사항이에요.");
+        return false;
+      }
+      if(emailVerified === false) {
+        alert("이메일 인증을 완료해주세요.");
+        return false;
+      }
+    });
+  </script>
+</div>
+</html>

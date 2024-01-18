@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Getter;
 
-
 @Getter
 public class MentorRegisterInfo {
 
@@ -15,16 +14,17 @@ public class MentorRegisterInfo {
 
   private Career career;
 
-  @NotBlank
+  @NotBlank(message = "공백일 수 없습니다.")
   private String accountNumber;
 
   private String bankName;
 
-  @NotBlank
+  @NotBlank(message = "공백일 수 없습니다.")
   private String accountName;
 
   @Builder
-  public MentorRegisterInfo(String companyEmail, Career career, String accountNumber, String bankName,
+  public MentorRegisterInfo(String companyEmail, Career career, String accountNumber,
+      String bankName,
       String accountName) {
     this.companyEmail = companyEmail;
     this.career = career;

@@ -12,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +24,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class MentorViewController {
 
   private final MentorService mentorService;
+  private final ViewResolver viewResolver;
+
+  @GetMapping("/me/schedule")
+  public String getUnavailableTimes(HttpSession httpSession, Model model) {
+    SessionUser user = (SessionUser) httpSession.getAttribute("user");
+    MentorOpenCloseTimes result = mentorService.getMentorSchedule(1L);
+    model.addAttribute("openCloseTimes", result);
+    return viewResolver.getViewPath("mentor", "schedule");
+  }
 
   @GetMapping("/me/applied-mentorings")
   public String getMentoringApplications(
@@ -34,14 +44,29 @@ public class MentorViewController {
     return "mentoring-dashboard";
   }
 
-  @GetMapping("/register")
-  public String register() {
-    return "/register";
+  @GetMapping("/email-verification")
+  public String verify(Model model) {
+    MentorRegisterInfo mentorRegisterInfo = new MentorRegisterInfo("", Career.JUNIOR, "", "", "");
+    model.addAttribute("mentorRegisterInfo", mentorRegisterInfo);
+    return viewResolver.getViewPath("mentor", "email-verification");
   }
 
-  @PostMapping("")
-  public String registerProcess(@ModelAttribute MentorRegisterInfo mentorRegisterInfo) {
+  @GetMapping("/register")
+  public String register(@ModelAttribute MentorRegisterInfo mentorRegisterInfo, Model model) {
+    log.info("email === " + mentorRegisterInfo.getCompanyEmail());
+    model.addAttribute(mentorRegisterInfo);
+    return viewResolver.getViewPath("mentor", "register");
+  }
+
+  @PostMapping
+  public String registerProcess(@Valid @ModelAttribute MentorRegisterInfo mentorRegisterInfo,
+      BindingResult bindingResult, Model model
+  ) {
+    if (bindingResult.hasErrors()) {
+      model.addAttribute("mentorRegisterInfo", mentorRegisterInfo);
+      return viewResolver.getViewPath("mentor", "register");
+    }
     mentorService.register(mentorRegisterInfo);
-    return "멘토 등록 완료. 로그인 페이지로 이동해주세요.";
+    return viewResolver.getViewPath("mentor", "register");
   }
 }
